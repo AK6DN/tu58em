@@ -1,10 +1,10 @@
-tu58em is a software emulation of a DECtapeII TU-58 block addressable cartridge tape drive. It requires only a standard Windows PC as a host with an RS232 serial port to connect to the target system.
+<B>tu58em</B> is a software emulation of a DECtapeII TU-58 block addressable cartridge tape drive. It requires only a standard Windows PC as a host with an RS232 serial port to connect to the target system.
 
-tu58em was originally based on the 1984 Dan Ts'o tu58 program, but has been almost completely rewritten to make it compile error free, improve the program flow, and add new functionality. It has been compiled within the CYGWIN environment, and will run either within a CYGWIN window or an MSDOS command window with the associated cygwin1.dll helper file. tu58em has been tested under Win2K and WinXPsp2. tu58em has compiled error free under Linux but has not yet been tested in that environment.
+<B>tu58em</B> was originally based on the 1984 Dan Ts'o tu58 program, but has been almost completely rewritten to make it compile error free, improve the program flow, and add new functionality. It has been compiled within the CYGWIN environment, and will run either within a CYGWIN window or an MSDOS command window with the associated cygwin1.dll helper file. <B>tu58em</B> has been tested under Win2K and WinXPsp2. tu58em has compiled error free under Linux (Ubuntu 12.02LTS) but has not yet been tested in that environment.
 
 Each emulated .dsk image file is exactly 256KB (512 blocks of 512 bytes) of data and is a byte-for-byte image of the data on a TU-58 cartridge tape. As currently configured tu58em will support up to 8 drives per controller as DD0: to DD7: (altho this is easily changed in the source).
 
-tu58em has been tested using both native RS232 serial COM ports and serial ports emulated thru USB serial adapters.
+<B>tu58em</B> has been tested using both native RS232 serial COM ports and serial ports emulated thru USB serial adapters.
 
 If the emulator is run with no options, it prints a usage screen:
 
@@ -50,7 +50,7 @@ Most of the switches should be pretty obvious:
 -z FILENAME 	set the next unit as a read/write drive using file FILENAME, initialize XXDP filesystem before use
 ```
 
-A sample run of tu58em, using COM3 at 38.4Kb, a read/only tape on DD0: using file boot.dsk, and a read/write tape on DD1: initialized with an RT-11 filesystem as file rt11.dsk:
+A sample run of <B>tu58em</B>, using COM3 at 38.4Kb, a read/only tape on DD0: using file boot.dsk, and a read/write tape on DD1: initialized with an RT-11 filesystem as file rt11.dsk:
 
 ```
 E:\DEC> tu58em -p 3 -s 38400 -r boot.dsk -i rt11.dsk
