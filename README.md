@@ -8,7 +8,7 @@ tu58em has been tested using both native RS232 serial COM ports and serial ports
 
 If the emulator is run with no options, it prints a usage screen:
 
-
+```
 E:\DEC> tu58em
 ERROR: no units were specified
 FATAL: illegal command line
@@ -29,9 +29,11 @@ FATAL: illegal command line
            -i | --initrt11 FILENAME  create new r/w drive, initialize RT11 directory
            -z | --initxxdp FILENAME  create new r/w drive, initialize XXDP directory
 E:\DEC>
+```
 
 Most of the switches should be pretty obvious:
 
+```
 -V 	prints the program version and exits
 -v 	sets verbose mode, which outputs status as the emulator runs
 -d 	sets debug mode, which dumps out all packets sent/received
@@ -46,10 +48,11 @@ Most of the switches should be pretty obvious:
 -c FILENAME 	set the next unit as a read/write drive using file FILENAME, zero the file before use
 -i FILENAME 	set the next unit as a read/write drive using file FILENAME, initialize RT-11 filesystem before use
 -z FILENAME 	set the next unit as a read/write drive using file FILENAME, initialize XXDP filesystem before use
+```
 
 A sample run of tu58em, using COM3 at 38.4Kb, a read/only tape on DD0: using file boot.dsk, and a read/write tape on DD1: initialized with an RT-11 filesystem as file rt11.dsk:
 
-
+```
 E:\DEC> tu58em -p 3 -s 38400 -r boot.dsk -i rt11.dsk
 info: initialize RT-11 directory on 'rt11.dsk'
 info: unit 0 r    file 'boot.dsk'
@@ -74,3 +77,4 @@ info: write    unit=1 sw=0x00 mod=0x00 blk=0x0006 cnt=0x0400
   [ Q typed ]
 info: TU58 emulation end
 E:\DEC>
+```
