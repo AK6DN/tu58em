@@ -6,6 +6,8 @@ Each emulated .dsk image file is exactly 256KB (512 blocks of 512 bytes) of data
 
 <B>tu58em</B> has been tested using both native RS232 serial COM ports and serial ports emulated thru USB serial adapters.
 
+Note: <B>tu58em</B> is compiled using the CYGWIN serial interface library routines (ie, termios.h) and is the preferred version that should be used. <B>tu58ew</B> bypasses the CYGWIN serial interface layer and makes direct Windows serial comm routine calls. This version was done early on because of deficiencies in the CYGWIN serial library. However, the required features are now present so in reality <B>tu58ew</B> should be considered deprecated.
+
 If the emulator is run with no options, it prints a usage screen:
 
 ```
