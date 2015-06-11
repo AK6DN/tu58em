@@ -21,6 +21,12 @@
 #include <winbase.h>
 #endif // WINCOMM
 
+#ifdef MACOSX
+#define IUCLC 0 // Not POSIX
+#define OLCUC 0 // Not POSIX
+#define CBAUD 0 // Not POSIX
+#endif
+
 #include <termios.h>
 
 #define	BUFSIZE	256	// size of serial line buffers (bytes, each way)

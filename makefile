@@ -2,11 +2,15 @@
 # tu58em emulator makefile
 #
 
-ifeq ($(comm),win)
+ifeq ($(comm),mac)
+# UNIX comms model, but on a Mac
+PROG = tu58em
+COMM = -UWINCOMM -DMACOSX
+else ifeq ($(comm),win)
 # WINDOWS comms model
 PROG = tu58ew
 COMM = -DWINCOMM
-else
+else # ifeq ($(comm),unix)
 # UNIX comms model
 PROG = tu58em
 COMM = -UWINCOMM
@@ -16,7 +20,11 @@ BIN = ../../../../../tools/exe
 
 CC = gcc
 CFLAGS = -I. -O3 -Wall -c $(COMM)
+ifeq ($(comm),mac)
+LFLAGS = -lpthread
+else
 LFLAGS = -lpthread -lrt
+endif
 
 $(PROG) : main.o tu58drive.o file.o serial.o
 	$(CC) -o $@ main.o tu58drive.o file.o serial.o $(LFLAGS)
@@ -27,6 +35,10 @@ all :
 	make --always comm=unix
 	make clean
 
+mac :
+	make --always comm=mac
+	make --clean
+
 installall :
 	make --always comm=win install
 	make clean
@@ -35,7 +47,7 @@ installall :
 
 clean :
 	-rm -f *.o
-	-chmod a-x,ug+w,o-w *.c *.h Makefile
+	-chmod a-x,ug+w,o-w *.c *.h makefile
 	-chmod a+rx $(PROG) $(PROG).exe
 	-chown `whoami` *
 

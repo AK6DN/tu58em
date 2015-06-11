@@ -14,7 +14,7 @@ If the emulator is run with no options, it prints a usage screen:
 E:\DEC> tu58em
 ERROR: no units were specified
 FATAL: illegal command line
-  tu58 tape emulator v1.4j
+  tu58 tape emulator v1.4k
   Usage: ./tu58em [-options] -[rwci] file1 ... -[rwci] file7
   Options: -V | --version            output version string
            -v | --verbose            enable verbose output to terminal

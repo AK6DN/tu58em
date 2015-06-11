@@ -39,6 +39,8 @@
 // v1.4j - 01 Nov 2014 - donorth - Change 'int' to 'long' where possible.
 //                                 Only use char/short/long types, not int.
 //                                 Fix source for ubuntu linux 12.04 (time structs)
+// v1.4k - 11 Jun 2015 - donorth - Integrate Mark Blair's changes for MacOSX compilation
+//                               - No functionality changes on other platforms
 //
 
 
@@ -49,7 +51,7 @@
 static char copyright[] = "(C) 2005-2014 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4j";
+static char version[] = "tu58 tape emulator v1.4k";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed

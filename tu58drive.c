@@ -20,6 +20,18 @@
 
 #include "tu58.h"
 
+#ifdef MACOSX
+// clock_gettime() is not available under OSX
+#define CLOCK_REALTIME 1
+#include <mach/mach_time.h>
+
+void clock_gettime(int dummy, timespec_t *t) {
+    uint64_t mt;
+    mt = mach_absolute_time();
+    t->tv_sec  = mt / 1000000000;
+    t->tv_nsec = mt % 1000000000;
+}
+#endif
 
 
 // delays for modeling device access
@@ -523,6 +535,12 @@ static void command (int8_t flag)
     timespec_t time_end;
     char *name= "none";
     uint8_t mode = 0;
+
+    // Avoid uninitialized variable warnings
+    time_start.tv_sec  = 0;
+    time_start.tv_nsec = 0;
+    time_end.tv_sec    = 0;
+    time_end.tv_nsec   = 0;
 
     pk.flag = flag;
     pk.length = devrxget();
