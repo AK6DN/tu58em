@@ -8,19 +8,23 @@ Each emulated .dsk image file is exactly 256KB (512 blocks of 512 bytes) of data
 
 Note: <B>tu58em</B> is compiled using the CYGWIN serial interface library routines (ie, termios.h) and is the preferred version that should be used. <B>tu58ew</B> bypasses the CYGWIN serial interface layer and makes direct Windows serial comm routine calls. This version was done early on because of deficiencies in the CYGWIN serial library. However, the required features are now present so in reality <B>tu58ew</B> should be considered deprecated.
 
+The latest version (as of 1.4m) integrates Mark Blair's updates for VAX mode operation (for VAX-730 microcode boot support) and background mode.
+
 If the emulator is run with no options, it prints a usage screen:
 
 ```
 E:\DEC> tu58em
 ERROR: no units were specified
 FATAL: illegal command line
-  tu58 tape emulator v1.4k
+  tu58 tape emulator v1.4m
   Usage: ./tu58em [-options] -[rwci] file1 ... -[rwci] file7
   Options: -V | --version            output version string
            -v | --verbose            enable verbose output to terminal
            -d | --debug              enable debug output to terminal
            -m | --mrsp               enable standard MRSP mode (byte-level handshake)
            -n | --nosync             disable sending INIT at initial startup
+           -x | --vax                remove delays for aggressive timeout of VAX console
+           -b | --background         run in background mode, no console I/O except errors
            -t | --timing 1           add timing delays to spoof diagnostic into passing
            -T | --timing 2           add timing delays to mimic a real TU58
            -s | --speed BAUD         set line speed [1200..230400; default 9600]
@@ -41,6 +45,8 @@ Most of the switches should be pretty obvious:
 -d 	sets debug mode, which dumps out all packets sent/received
 -m 	enables MRSP mode (VERY MUCH UNTESTED) instead of the default original RSP mode
 -n 	disables the sending of INIT characters at startup
+-x      remove delays for aggressive timeout of VAX console
+-b      run in background mode, no console I/O except errors
 -t 	adds time delays to allow the emulator to pass the DEC ZTUUF0 TU-58 Performance Exerciser diagnostic
 -T 	adds time delays to make the emulator nearly as slow as a real TU-58 (just for fun)
 -s BAUD 	sets the baud rate (115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200 are supported)
