@@ -16,8 +16,10 @@ PROG = tu58em
 COMM = -UWINCOMM
 endif
 
-BIN = ../../../../../tools/exe
+# put your binary installation directory here...
+BIN = /cygdrive/e/DEC/tools/exe
 
+# compiler flags and libraries
 CC = gcc
 CFLAGS = -I. -O3 -Wall -c $(COMM)
 ifeq ($(comm),mac)
@@ -55,7 +57,7 @@ purge : clean
 	-rm -f $(PROG) $(PROG).exe
 
 install : $(PROG)
-	cp $< $(BIN)
+	[ -d $(BIN) ] && cp $< $(BIN)
 
 serial.o : serial.c common.h
 	$(CC) $(CFLAGS) serial.c
