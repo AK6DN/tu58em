@@ -575,6 +575,9 @@ void coninit (void)
 {
     struct termios cons;
 
+    // background mode, don't do anything
+    if (background) return;
+
     // get current console parameters
     if (tcgetattr(fileno(stdin), &consSave))
 	fatal("stdin not a serial device");
@@ -603,6 +606,10 @@ void coninit (void)
 //
 void conrestore (void)
 {
+    // background mode, don't do anything
+    if (background) return;
+
+    // restore console mode to saved
     tcsetattr(fileno(stdin), TCSANOW, &consSave);
     return;
 }
@@ -616,6 +623,9 @@ int32_t conget (void)
 {
     char buf[1];
     int32_t s;
+
+    // background mode, don't return anything
+    if (background) return -1;
 
     // try to read at most one char (may be none)
     s = read(fileno(stdin), buf, sizeof(buf));

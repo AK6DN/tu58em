@@ -41,6 +41,8 @@
 //                                 Fix source for ubuntu linux 12.04 (time structs)
 // v1.4k - 11 Jun 2015 - donorth - Integrate Mark Blair's changes for MacOSX compilation
 //                               - No functionality changes on other platforms
+// v1.4m - 23 Feb 2016 - donorth - Added M. Blair's vax console timeout changes for '730
+//                               - Added M. Blair's background mode option (no status).
 //
 
 
@@ -51,7 +53,7 @@
 static char copyright[] = "(C) 2005-2014 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4k";
+static char version[] = "tu58 tape emulator v1.4m";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed
@@ -61,6 +63,8 @@ uint8_t timing = 0; // set nonzero to add timing delays
 uint8_t mrspen = 0; // set nonzero to enable MRSP mode
 uint8_t nosync = 0; // set nonzero to skip sending INIT at restart
 uint8_t debug = 0; // set nonzero for debug output
+uint8_t vax = 0; // set to remove delays for aggressive VAX console timeouts
+uint8_t background = 0; // set to run in background mode (no console I/O except errors)
 
 
 
@@ -70,11 +74,13 @@ uint8_t debug = 0; // set nonzero for debug output
 void info (char *fmt, ...)
 {
     va_list args;
-    va_start(args, fmt);
-    fprintf(stderr, "info: ");
-    vfprintf(stderr, fmt, args);
-    fprintf(stderr, "\n");
-    va_end(args);
+    if (!background) {
+	va_start(args, fmt);
+	fprintf(stderr, "info: ");
+	vfprintf(stderr, fmt, args);
+	fprintf(stderr, "\n");
+	va_end(args);
+    }
     return;
 }
 
@@ -124,13 +130,15 @@ int main (int argc,
 
     // switch options
     int opt_index = 0;
-    char opt_short[] = "dvVmnTtp:s:r:w:c:i:z:";
+    char opt_short[] = "dvVmnxbTtp:s:r:w:c:i:z:";
     static struct option opt_long[] = {
 	{ "debug",	no_argument,       0, 'd' },
 	{ "verbose",	no_argument,       0, 'v' },
 	{ "version",	no_argument,       0, 'V' },
 	{ "mrsp",	no_argument,       0, 'm' },
 	{ "nosync",	no_argument,       0, 'n' },
+	{ "vax",	no_argument,       0, 'x' },
+	{ "background",	no_argument,       0, 'b' },
 	{ "timing",	required_argument, 0, -2  },
 	{ "port",	required_argument, 0, 'p' },
 	{ "baud",	required_argument, 0, 's' },
@@ -162,6 +170,8 @@ int main (int argc,
 	case 'n':  nosync = 1;  break;
 	case 'T':  timing = 2;  break;
 	case 't':  timing = 1;  break;
+	case 'x':  vax = 1;  break;
+	case 'b':  background = 1;  break;
 	case 'd':  verbose = 1; debug = 1;  break;
 	case 'v':  verbose = 1;  break;
 	case 'V':  info("version is %s", version);  break;
@@ -188,6 +198,8 @@ int main (int argc,
 	      "           -d | --debug              enable debug output to terminal\n" \
 	      "           -m | --mrsp               enable standard MRSP mode (byte-level handshake)\n" \
 	      "           -n | --nosync             disable sending INIT at initial startup\n" \
+	      "           -x | --vax                remove delays for aggressive timeouts of VAX console\n" \
+	      "           -b | --background         run in background mode, no console I/O except errors\n" \
 	      "           -t | --timing 1           add timing delays to spoof diagnostic into passing\n" \
 	      "           -T | --timing 2           add timing delays to mimic a real TU58\n" \
 	      "           -s | --speed BAUD         set line speed [1200..230400; default 9600]\n" \

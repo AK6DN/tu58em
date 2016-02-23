@@ -156,12 +156,15 @@ static void dumppacket (tu_packet *pkt, char *name)
     int32_t count = 0;
     uint8_t *ptr = (uint8_t *)pkt;
 
-    fprintf(stderr, "info: %s()\n", name);
-    while (count++ < pkt->cmd.length+2) {
-	if (count == 3 || ((count-4)%32 == 31)) fprintf(stderr, "\n");
-	fprintf(stderr, " %02X", *ptr++);
+    // formatted packet dump, but skip it in background mode
+    if (!background) {
+	fprintf(stderr, "info: %s()\n", name);
+	while (count++ < pkt->cmd.length+2) {
+	    if (count == 3 || ((count-4)%32 == 31)) fprintf(stderr, "\n");
+	    fprintf(stderr, " %02X", *ptr++);
+	}
+	fprintf(stderr, "\n %02X %02X\n", ptr[0], ptr[1]);
     }
-    fprintf(stderr, "\n %02X %02X\n", ptr[0], ptr[1]);
 
     return;
 }
@@ -536,7 +539,7 @@ static void command (int8_t flag)
     char *name= "none";
     uint8_t mode = 0;
 
-    // Avoid uninitialized variable warnings
+    // avoid uninitialized variable warnings
     time_start.tv_sec  = 0;
     time_start.tv_nsec = 0;
     time_end.tv_sec    = 0;
@@ -702,14 +705,17 @@ static void* run (void* none)
 
 	// loop while no characters are available
 	while (devrxavail() == 0) {
-	    // send INITs if still required
-	    if (doinit) {
-		if (debug) fprintf(stderr, ".");
-		devtxput(TUF_INIT);
-		devtxflush();
-		delay_ms(75);
+	    // delays and printout only if not VAX
+	    if (!vax) {
+		// send INITs if still required
+		if (doinit) {
+		    if (debug) fprintf(stderr, ".");
+		    devtxput(TUF_INIT);
+		    devtxflush();
+		    delay_ms(75);
+		}
+		delay_ms(25);
 	    }
-	    delay_ms(25);
 	}
 	doinit = 0; // quit sending init flags
 
@@ -730,7 +736,7 @@ static void* run (void* none)
 	    if (debug) info("<INIT> seen");
 	    if (last == TUF_INIT) {
 		// two in a row is special
-		delay_ms(tudelay[timing].init);
+		if (!vax) delay_ms(tudelay[timing].init); // no delay for VAX
 		devtxput(TUF_CONT); // send 'continue'
 		devtxflush(); // send immediate
 		flag = -1; // undefined

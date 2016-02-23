@@ -101,6 +101,8 @@ extern uint8_t verbose;
 extern uint8_t nosync;
 extern uint8_t timing;
 extern uint8_t mrspen;
+extern uint8_t vax;
+extern uint8_t background;
 
 
 // the end
