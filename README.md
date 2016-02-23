@@ -40,22 +40,22 @@ E:\DEC>
 Most of the switches should be pretty obvious:
 
 ```
--V 	prints the program version and exits
--v 	sets verbose mode, which outputs status as the emulator runs
--d 	sets debug mode, which dumps out all packets sent/received
--m 	enables MRSP mode (VERY MUCH UNTESTED) instead of the default original RSP mode
--n 	disables the sending of INIT characters at startup
--x      remove delays for aggressive timeout of VAX console
--b      run in background mode, no console I/O except errors
--t 	adds time delays to allow the emulator to pass the DEC ZTUUF0 TU-58 Performance Exerciser diagnostic
--T 	adds time delays to make the emulator nearly as slow as a real TU-58 (just for fun)
--s BAUD 	sets the baud rate (115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200 are supported)
--p PORT 	sets the com port as a number (1,2,3,...) or if not numeric the full path (/dev/com1)
--r FILENAME 	set the next unit as a read only drive using file FILENAME
--w FILENAME 	set the next unit as a read/write drive using file FILENAME
--c FILENAME 	set the next unit as a read/write drive using file FILENAME, zero the file before use
--i FILENAME 	set the next unit as a read/write drive using file FILENAME, initialize RT-11 filesystem before use
--z FILENAME 	set the next unit as a read/write drive using file FILENAME, initialize XXDP filesystem before use
+-V   prints the program version and exits
+-v   sets verbose mode, which outputs status as the emulator runs
+-d   sets debug mode, which dumps out all packets sent/received
+-m   enables MRSP mode (VERY MUCH UNTESTED) instead of the default original RSP mode
+-n   disables the sending of INIT characters at startup
+-x   remove delays for aggressive timeout of VAX console
+-b   run in background mode, no console I/O except errors
+-t   adds time delays to allow the emulator to pass the DEC ZTUUF0 TU-58 Performance Exerciser diagnostic
+-T   adds time delays to make the emulator nearly as slow as a real TU-58 (just for fun)
+-s BAUD      sets the baud rate (115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200 are supported)
+-p PORT      sets the com port as a number (1,2,3,...) or if not numeric the full path (/dev/com1)
+-r FILENAME  set the next unit as a read only drive using file FILENAME
+-w FILENAME  set the next unit as a read/write drive using file FILENAME
+-c FILENAME  set the next unit as a read/write drive using file FILENAME, zero the file before use
+-i FILENAME  set the next unit as a read/write drive using file FILENAME, initialize RT-11 filesystem before use
+-z FILENAME  set the next unit as a read/write drive using file FILENAME, initialize XXDP filesystem before use
 ```
 
 A sample run of <B>tu58em</B>, using COM3 at 38.4Kb, a read/only tape on DD0: using file boot.dsk, and a read/write tape on DD1: initialized with an RT-11 filesystem as file rt11.dsk:
