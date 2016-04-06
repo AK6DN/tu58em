@@ -29,7 +29,7 @@ FATAL: illegal command line
            -b | --background         run in background mode, no console I/O except errors
            -t | --timing 1           add timing delays to spoof diagnostic into passing
            -T | --timing 2           add timing delays to mimic a real TU58
-           -s | --speed BAUD         set line speed [1200..230400; default 9600]
+           -s | --speed BAUD         set line speed [1200..3000000; default 9600]
            -p | --port PORT          set port to PORT [1..N or /dev/comN; default 1]
            -r | --read|rd FILENAME   readonly drive
            -w | --write FILENAME     read/write drive
@@ -51,7 +51,9 @@ Most of the switches should be pretty obvious:
 -b   run in background mode, no console I/O except errors
 -t   adds time delays to allow the emulator to pass the DEC ZTUUF0 TU-58 Performance Exerciser diagnostic
 -T   adds time delays to make the emulator nearly as slow as a real TU-58 (just for fun)
--s BAUD      sets the baud rate (115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200 are supported)
+-s BAUD      sets the baud rate; the following rates are supported. the default will be 9600 if not set.
+                      3000000, 2500000, 2000000, 1500000, 1152000, 1000000, 921600, 576000, 500000,
+		      460800, 256000, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200
 -p PORT      sets the com port as a number (1,2,3,...) or if not numeric the full path (/dev/com1)
 -r FILENAME  set the next unit as a read only drive using file FILENAME
 -w FILENAME  set the next unit as a read/write drive using file FILENAME

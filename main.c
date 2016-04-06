@@ -43,6 +43,7 @@
 //                               - No functionality changes on other platforms
 // v1.4m - 23 Feb 2016 - donorth - Added M. Blair's vax console timeout changes for '730
 //                               - Added M. Blair's background mode option (no status).
+// v1.4n - 06 Apr 2016 - donorth - Added capability for baud rates >230K, up to 3M
 //
 
 
@@ -50,10 +51,10 @@
 #include <getopt.h>
 
 
-static char copyright[] = "(C) 2005-2014 Don North <ak6dn" "@" "mindspring.com>, " \
+static char copyright[] = "(C) 2005-2016 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4m";
+static char version[] = "tu58 tape emulator v1.4n";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed
@@ -202,7 +203,7 @@ int main (int argc,
 	      "           -b | --background         run in background mode, no console I/O except errors\n" \
 	      "           -t | --timing 1           add timing delays to spoof diagnostic into passing\n" \
 	      "           -T | --timing 2           add timing delays to mimic a real TU58\n" \
-	      "           -s | --speed BAUD         set line speed [1200..230400; default 9600]\n" \
+	      "           -s | --speed BAUD         set line speed [1200..3000000; default 9600]\n" \
 	      "           -p | --port PORT          set port to PORT [1..N or /dev/comN; default 1]\n" \
 	      "           -r | --read|rd FILENAME   readonly drive\n" \
 	      "           -w | --write FILENAME     read/write drive\n" \

@@ -2,7 +2,7 @@
 // tu58 - Emulate a TU58 over a serial line
 //
 // Original (C) 1984 Dan Ts'o <Rockefeller Univ. Dept. of Neurobiology>
-// Update (C) 2005-2012 Don North <ak6dn_at_mindspring_dot_com>
+// Update (C) 2005-2016 Don North <ak6dn_at_mindspring_dot_com>
 //
 // This is the TU58 emulation program written at Rockefeller Univ., Dept. of
 // Neurobiology. We copyright (C) it and permit its use provided it is not
@@ -374,27 +374,49 @@ void devtxput (uint8_t c)
 static int32_t devbaud (int32_t rate)
 {
 #ifdef WINCOMM
-    static int32_t baudlist[] = { 230400, 230400,
-				  115200, 115200,
-				  57600,  57600,
-				  38400,  38400,
-				  19200,  19200,
-				  9600,   9600,
-				  4800,   4800,
-				  2400,   2400,
-				  1200,   1200,
-			          -1,	  -1 };
-#else // !WINCOMM
-    static int32_t baudlist[] = { 230400, B230400,
-				  115200, B115200,
-				  57600,  B57600,
-				  38400,  B38400,
-				  19200,  B19200,
-				  9600,   B9600,
-				  4800,   B4800,
-				  2400,   B2400,
-				  1200,   B1200,
+    static int32_t baudlist[] = { 3000000, 3000000,
+				  2500000, 2500000,
+				  2000000, 2000000,
+				  1500000, 1500000,
+				  1152000, 1152000,
+				  1000000, 1000000,
+				  921600,  921600,
+				  576000,  576000,
+				  500000,  500000,
+				  460800,  460800,
+				  256000,  256000,
+				  230400,  230400,
+				  115200,  115200,
+				  57600,   57600,
+				  38400,   38400,
+				  19200,   19200,
+				  9600,    9600,
+				  4800,    4800,
+				  2400,    2400,
+				  1200,    1200,
 			          -1,	   -1 };
+#else // !WINCOMM
+    static int32_t baudlist[] = { 3000000, B3000000,
+				  2500000, B2500000,
+				  2000000, B2000000,
+				  1500000, B1500000,
+				  1152000, B1152000,
+				  1000000, B1000000,
+				  921600,  B921600,
+				  576000,  B576000,
+				  500000,  B500000,
+				  460800,  B460800,
+				  256000,  B256000,
+				  230400,  B230400,
+				  115200,  B115200,
+				  57600,   B57600,
+				  38400,   B38400,
+				  19200,   B19200,
+				  9600,    B9600,
+				  4800,    B4800,
+				  2400,    B2400,
+				  1200,    B1200,
+			          -1,	    -1 };
 #endif // !WINCOMM
     int32_t *p = baudlist;
     int32_t r;
@@ -462,7 +484,7 @@ void devinit (char *port,
     dcb.fAbortOnError = FALSE;
     dcb.ByteSize = 8;
     dcb.Parity = NOPARITY;
-    dcb.StopBits = ONESTOPBIT;
+    dcb.StopBits = TWOSTOPBITS;
 
     // timing/read param
     cto.ReadIntervalTimeout = MAXDWORD;
@@ -518,7 +540,7 @@ void devinit (char *port,
     // control param
     line.c_cflag &= ~( CBAUD  | CSIZE | CSTOPB  | PARENB | PARODD |
 		       HUPCL | CRTSCTS | CLOCAL | CREAD );
-    line.c_cflag |=  ( CLOCAL | CREAD | CS8     );
+    line.c_cflag |=  ( CLOCAL | CREAD | CS8 | CSTOPB ); // 8b+2stop
 
     // local param
     line.c_lflag &= ~( ISIG   | ICANON  | ECHO   | ECHOE  | ECHOK  |
