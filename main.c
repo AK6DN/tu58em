@@ -2,7 +2,7 @@
 // tu58 - Emulate a TU58 over a serial line
 //
 // Original (C) 1984 Dan Ts'o <Rockefeller Univ. Dept. of Neurobiology>
-// Update   (C) 2005-2016 Donald N North <ak6dn_at_mindspring_dot_com>
+// Update   (C) 2005-2017 Donald N North <ak6dn_at_mindspring_dot_com>
 //
 // All rights reserved.
 //
@@ -73,6 +73,9 @@
 // v1.4m - 23 Feb 2016 - donorth - Added M. Blair's vax console timeout changes for '730
 //                               - Added M. Blair's background mode option (no status).
 // v1.4n - 06 Apr 2016 - donorth - Added capability for baud rates >230K, up to 3M
+// v1.4o - 09 Jan 2017 - donorth - Removed baud rate 256000, it is nonstandard for unix.
+//                                 Changed serial setup to use cfsetispeed()/cfsetospeed().
+//                                 Added capability for 1 or 2 stop bits; default is 1
 //
 
 
@@ -80,13 +83,14 @@
 #include <getopt.h>
 
 
-static char copyright[] = "(C) 2005-2016 Don North <ak6dn" "@" "mindspring.com>, " \
+static char copyright[] = "(C) 2005-2017 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4n";
+static char version[] = "tu58 tape emulator v1.4o";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed
+static long stop = 1; // default stop bits, 1 or 2
 
 uint8_t verbose = 0; // set nonzero to output more info
 uint8_t timing = 0; // set nonzero to add timing delays
@@ -160,7 +164,7 @@ int main (int argc,
 
     // switch options
     int opt_index = 0;
-    char opt_short[] = "dvVmnxbTtp:s:r:w:c:i:z:";
+    char opt_short[] = "dvVmnxbTtp:s:r:w:c:i:z:S:";
     static struct option opt_long[] = {
 	{ "debug",	no_argument,       0, 'd' },
 	{ "verbose",	no_argument,       0, 'v' },
@@ -173,6 +177,7 @@ int main (int argc,
 	{ "port",	required_argument, 0, 'p' },
 	{ "baud",	required_argument, 0, 's' },
 	{ "speed",	required_argument, 0, 's' },
+	{ "stop",	required_argument, 0, 'S' },
 	{ "rd",		required_argument, 0, 'r' },
 	{ "read",	required_argument, 0, 'r' },
 	{ "write",	required_argument, 0, 'w' },
@@ -191,6 +196,7 @@ int main (int argc,
 	case -2 :  timing = atoi(optarg); if (timing > 2) errors++; break;
 	case 'p':  strcpy(port, optarg);  break;
 	case 's':  speed = atoi(optarg);  break;
+	case 'S':  stop = atoi(optarg);  break;
 	case 'r':  fileopen(optarg, FILEREAD);  n++;  break;
 	case 'w':  fileopen(optarg, FILEWRITE);  n++;  break;
 	case 'c':  fileopen(optarg, FILECREATE);  n++;  break;
@@ -232,7 +238,8 @@ int main (int argc,
 	      "           -b | --background         run in background mode, no console I/O except errors\n" \
 	      "           -t | --timing 1           add timing delays to spoof diagnostic into passing\n" \
 	      "           -T | --timing 2           add timing delays to mimic a real TU58\n" \
-	      "           -s | --speed BAUD         set line speed [1200..3000000; default 9600]\n" \
+	      "           -s | --speed BAUD         set line speed 1200..3000000; default 9600\n" \
+	      "           -S | --stop BITS          set stop bits 1..2; default 1\n" \
 	      "           -p | --port PORT          set port to PORT [1..N or /dev/comN; default 1]\n" \
 	      "           -r | --read|rd FILENAME   readonly drive\n" \
 	      "           -w | --write FILENAME     read/write drive\n" \
@@ -242,11 +249,11 @@ int main (int argc,
 	      version, argv[0], NTU58-1);
 
     // give some info
-    info("serial port %s at %d baud", port, speed);
+    info("serial port %s at %d baud %d stop", port, speed, stop);
     if (mrspen) info("MRSP mode enabled (NOT fully tested - use with caution)");
 
     // setup serial and console ports
-    devinit(port, speed);
+    devinit(port, speed, stop);
     coninit();
     
     // play TU58

@@ -106,7 +106,7 @@ void devrxinit (void);
 int32_t devrxavail (void);
 int32_t devrxerror (void);
 uint8_t devrxget (void);
-void devinit (char *, int32_t);
+void devinit (char *, int32_t, int32_t);
 void devrestore (void);
 void coninit (void);
 void conrestore (void);

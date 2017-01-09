@@ -415,7 +415,6 @@ static int32_t devbaud (int32_t rate)
 				  576000,  576000,
 				  500000,  500000,
 				  460800,  460800,
-				  256000,  256000,
 				  230400,  230400,
 				  115200,  115200,
 				  57600,   57600,
@@ -437,7 +436,6 @@ static int32_t devbaud (int32_t rate)
 				  576000,  B576000,
 				  500000,  B500000,
 				  460800,  B460800,
-				  256000,  B256000,
 				  230400,  B230400,
 				  115200,  B115200,
 				  57600,   B57600,
@@ -465,7 +463,8 @@ static int32_t devbaud (int32_t rate)
 // open/initialize serial port
 //
 void devinit (char *port,
-	      int32_t speed)
+	      int32_t speed,
+	      int32_t stop)
 {
 #ifdef WINCOMM
 
@@ -515,7 +514,7 @@ void devinit (char *port,
     dcb.fAbortOnError = FALSE;
     dcb.ByteSize = 8;
     dcb.Parity = NOPARITY;
-    dcb.StopBits = TWOSTOPBITS;
+    dcb.StopBits = (stop == 2) ? TWOSTOPBITS : ONESTOPBIT;
 
     // timing/read param
     cto.ReadIntervalTimeout = MAXDWORD;
@@ -550,12 +549,6 @@ void devinit (char *port,
     // copy current parameters
     line = lineSave;
 
-    // set baud rate
-    if (devbaud(speed) == -1)
-	error("illegal serial speed %d., ignoring", speed);
-    else
-	line.c_ospeed = line.c_ispeed = devbaud(speed);
-
     // input param
     line.c_iflag &= ~( IGNBRK | BRKINT | IMAXBEL | INPCK | ISTRIP |
 		       INLCR  | IGNCR  | ICRNL   | IXON  | IXOFF  |
@@ -571,7 +564,10 @@ void devinit (char *port,
     // control param
     line.c_cflag &= ~( CBAUD  | CSIZE | CSTOPB  | PARENB | PARODD |
 		       HUPCL | CRTSCTS | CLOCAL | CREAD );
-    line.c_cflag |=  ( CLOCAL | CREAD | CS8 | CSTOPB ); // 8b+2stop
+    line.c_cflag |=  ( CLOCAL | CREAD | CS8 );
+
+    // set two stop bits if requested, else default to one
+    if (stop == 2) line.c_cflag |= CSTOPB;
 
     // local param
     line.c_lflag &= ~( ISIG   | ICANON  | ECHO   | ECHOE  | ECHOK  |
@@ -583,8 +579,18 @@ void devinit (char *port,
     line.c_cc[VMIN] = 1; // return a min of 1 chars
     line.c_cc[VTIME] = 0; // no timer
 
-    // ok, set new param
+    // flush all existing input data
     tcflush(device, TCIFLUSH);
+
+    // set baud rate, if it is legal
+    if (devbaud(speed) == -1) {
+	error("illegal serial speed %d., ignoring", speed);
+    } else {
+	cfsetispeed(&line, devbaud(speed));
+	cfsetospeed(&line, devbaud(speed));
+    }
+
+    // set new device parameters
     tcsetattr(device, TCSANOW, &line);
 
     // and non-blocking also
