@@ -8,7 +8,7 @@ Each emulated .dsk image file is exactly 256KB (512 blocks of 512 bytes) of data
 
 Note: <B>tu58em</B> is compiled using the CYGWIN serial interface library routines (ie, termios.h) and is the preferred version that should be used. <B>tu58ew</B> bypasses the CYGWIN serial interface layer and makes direct Windows serial comm routine calls. This version was done early on because of deficiencies in the CYGWIN serial library. However, the required features are now present so in reality <B>tu58ew</B> should be considered deprecated.
 
-The latest version (as of 1.4m) integrates Mark Blair's updates for VAX mode operation (for VAX-730 microcode boot support) and background mode.
+As of v1.4m Mark Blair's updates for VAX mode operation (for VAX-730 microcode boot support) and background mode are integrated.
 
 A cygwin folder with a precompiled 32b cygwin executable (tu58em.exe) is included for those without cygwin environment access. Under Windows, just open a standard CMD.EXE window, change to the cygwin folder, and run the <B>tu58em.exe</B> executable as a command line program.
 
@@ -53,9 +53,10 @@ Most of the switches should be pretty obvious:
 -t   adds time delays to allow the emulator to pass the DEC ZTUUF0 TU-58 Performance Exerciser diagnostic
 -T   adds time delays to make the emulator nearly as slow as a real TU-58 (just for fun)
 -s BAUD      sets the baud rate; the following rates are supported. the default will be 9600 if not set.
-                      3000000, 2500000, 2000000, 1500000, 1152000, 1000000, 921600, 576000, 500000,
-		      460800, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200
+                  3000000, 2500000, 2000000, 1500000, 1152000, 1000000, 921600, 576000, 500000,
+                  460800, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200
 -p PORT      sets the com port as a number (1,2,3,...) or if not numeric the full path (/dev/com1)
+-S STOP      sets the number of stop bits (1 or 2), default is 1
 -r FILENAME  set the next unit as a read only drive using file FILENAME
 -w FILENAME  set the next unit as a read/write drive using file FILENAME
 -c FILENAME  set the next unit as a read/write drive using file FILENAME, zero the file before use
