@@ -76,6 +76,8 @@
 // v1.4o - 09 Jan 2017 - donorth - Removed baud rate 256000, it is nonstandard for unix.
 //                                 Changed serial setup to use cfsetispeed()/cfsetospeed().
 //                                 Added capability for 1 or 2 stop bits; default is 1
+// v1.4p - 05 May 2017 - donorth - Updated serial baud rate table with #ifdef detection
+//                                 Update clock_gettime() for MAC OSX support
 //
 
 
@@ -86,7 +88,7 @@
 static char copyright[] = "(C) 2005-2017 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4o";
+static char version[] = "tu58 tape emulator v1.4p";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed
@@ -156,7 +158,7 @@ void fatal (char *fmt, ...)
 // main program
 //
 int main (int argc,
-	  char **argv)
+	  char *argv[])
 {
     long i;
     long n = 0;
@@ -166,32 +168,32 @@ int main (int argc,
     int opt_index = 0;
     char opt_short[] = "dvVmnxbTtp:s:r:w:c:i:z:S:";
     static struct option opt_long[] = {
-	{ "debug",	no_argument,       0, 'd' },
-	{ "verbose",	no_argument,       0, 'v' },
-	{ "version",	no_argument,       0, 'V' },
-	{ "mrsp",	no_argument,       0, 'm' },
-	{ "nosync",	no_argument,       0, 'n' },
-	{ "vax",	no_argument,       0, 'x' },
-	{ "background",	no_argument,       0, 'b' },
-	{ "timing",	required_argument, 0, -2  },
-	{ "port",	required_argument, 0, 'p' },
-	{ "baud",	required_argument, 0, 's' },
-	{ "speed",	required_argument, 0, 's' },
-	{ "stop",	required_argument, 0, 'S' },
-	{ "rd",		required_argument, 0, 'r' },
-	{ "read",	required_argument, 0, 'r' },
-	{ "write",	required_argument, 0, 'w' },
-	{ "create",	required_argument, 0, 'c' },
-	{ "initrt11",	required_argument, 0, 'i' },
-	{ "initxxdp",	required_argument, 0, 'z' },
-	{  0,           no_argument,       0,  0  }
+	{ "debug",	no_argument,       NULL, 'd' },
+	{ "verbose",	no_argument,       NULL, 'v' },
+	{ "version",	no_argument,       NULL, 'V' },
+	{ "mrsp",	no_argument,       NULL, 'm' },
+	{ "nosync",	no_argument,       NULL, 'n' },
+	{ "vax",	no_argument,       NULL, 'x' },
+	{ "background",	no_argument,       NULL, 'b' },
+	{ "timing",	required_argument, NULL, -2  },
+	{ "port",	required_argument, NULL, 'p' },
+	{ "baud",	required_argument, NULL, 's' },
+	{ "speed",	required_argument, NULL, 's' },
+	{ "stop",	required_argument, NULL, 'S' },
+	{ "rd",		required_argument, NULL, 'r' },
+	{ "read",	required_argument, NULL, 'r' },
+	{ "write",	required_argument, NULL, 'w' },
+	{ "create",	required_argument, NULL, 'c' },
+	{ "initrt11",	required_argument, NULL, 'i' },
+	{ "initxxdp",	required_argument, NULL, 'z' },
+	{  NULL,        no_argument,       NULL,  0  }
     };
 
     // init file structures
     fileinit();
 
     // process command line options
-    while ((i = getopt_long(argc, argv, opt_short, opt_long, &opt_index)) != EOF) {
+    while ((i = getopt_long(argc, argv, opt_short, opt_long, &opt_index)) != -1) {
 	switch (i) {
 	case -2 :  timing = atoi(optarg); if (timing > 2) errors++; break;
 	case 'p':  strcpy(port, optarg);  break;
@@ -238,7 +240,7 @@ int main (int argc,
 	      "           -b | --background         run in background mode, no console I/O except errors\n" \
 	      "           -t | --timing 1           add timing delays to spoof diagnostic into passing\n" \
 	      "           -T | --timing 2           add timing delays to mimic a real TU58\n" \
-	      "           -s | --speed BAUD         set line speed 1200..3000000; default 9600\n" \
+	      "           -s | --speed BAUD         set line speed to BAUD; default 9600\n" \
 	      "           -S | --stop BITS          set stop bits 1..2; default 1\n" \
 	      "           -p | --port PORT          set port to PORT [1..N or /dev/comN; default 1]\n" \
 	      "           -r | --read|rd FILENAME   readonly drive\n" \

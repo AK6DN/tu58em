@@ -52,11 +52,13 @@
 #include "tu58.h"
 
 #ifdef MACOSX
-// clock_gettime() is not available under OSX
+// clock_gettime() is not available under MACOSX
 #define CLOCK_REALTIME 1
 #include <mach/mach_time.h>
+#include <mach/clock.h>
+#include <mach/mach.h>
 
-void clock_gettime(int dummy, timespec_t *t) {
+void clock_gettime (int dummy, struct timespec *t) {
     uint64_t mt;
     mt = mach_absolute_time();
     t->tv_sec  = mt / 1000000000;

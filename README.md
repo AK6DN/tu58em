@@ -18,7 +18,7 @@ If the emulator is run with no options, it prints a usage screen:
 E:\DEC> tu58em
 ERROR: no units were specified
 FATAL: illegal command line
-  tu58 tape emulator v1.4o
+  tu58 tape emulator v1.4p
   Usage: ./tu58em [-options] -[rwci] file1 ... -[rwci] file7
   Options: -V | --version            output version string
            -v | --verbose            enable verbose output to terminal
@@ -29,7 +29,7 @@ FATAL: illegal command line
            -b | --background         run in background mode, no console I/O except errors
            -t | --timing 1           add timing delays to spoof diagnostic into passing
            -T | --timing 2           add timing delays to mimic a real TU58
-           -s | --speed BAUD         set line speed 1200..3000000; default 9600
+           -s | --speed BAUD         set line speed to BAUD; default 9600
            -S | --stop BITS          set stop bits 1..2; default 1
            -p | --port PORT          set port to PORT [1..N or /dev/comN; default 1]
            -r | --read|rd FILENAME   readonly drive
@@ -52,9 +52,10 @@ Most of the switches should be pretty obvious:
 -b   run in background mode, no console I/O except errors
 -t   adds time delays to allow the emulator to pass the DEC ZTUUF0 TU-58 Performance Exerciser diagnostic
 -T   adds time delays to make the emulator nearly as slow as a real TU-58 (just for fun)
--s BAUD      sets the baud rate; the following rates are supported. the default will be 9600 if not set.
+-s BAUD      sets the baud rate; the following rates may be supported. the default will be 9600 if not set.
                   3000000, 2500000, 2000000, 1500000, 1152000, 1000000, 921600, 576000, 500000,
                   460800, 230400, 115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200
+             exact list of baud rate support is system dependent (especially for rates above 230400)
 -p PORT      sets the com port as a number (1,2,3,...) or if not numeric the full path (/dev/com1)
 -S STOP      sets the number of stop bits (1 or 2), default is 1
 -r FILENAME  set the next unit as a read only drive using file FILENAME
