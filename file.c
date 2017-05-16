@@ -354,7 +354,7 @@ int32_t fileseek (int32_t unit,
 {
     if (fileunit(unit)) return -1;
 
-    if (block*size+offset > lseek(file[unit].fd, 0, SEEK_END)) return -2;
+    if (block*size+offset >= lseek(file[unit].fd, 0, SEEK_END)) return -2;
 
     if (lseek(file[unit].fd, block*size+offset, SEEK_SET) < 0) return -3;
 

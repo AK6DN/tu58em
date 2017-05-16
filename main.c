@@ -74,10 +74,11 @@
 //                               - Added M. Blair's background mode option (no status).
 // v1.4n - 06 Apr 2016 - donorth - Added capability for baud rates >230K, up to 3M
 // v1.4o - 09 Jan 2017 - donorth - Removed baud rate 256000, it is nonstandard for unix.
-//                                 Changed serial setup to use cfsetispeed()/cfsetospeed().
+//                                 Changed serial setup to use cfsetispeed()/cfsetospeed()
 //                                 Added capability for 1 or 2 stop bits; default is 1
 // v1.4p - 05 May 2017 - donorth - Updated serial baud rate table with #ifdef detection
 //                                 Update clock_gettime() for MAC OSX support
+// v1.4q - 16 May 2017 - donorth - Fixed error in fileseek() routine (should fail at EOF)
 //
 
 
@@ -88,7 +89,7 @@
 static char copyright[] = "(C) 2005-2017 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4p";
+static char version[] = "tu58 tape emulator v1.4q";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed
