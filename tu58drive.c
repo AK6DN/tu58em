@@ -849,7 +849,8 @@ static void* monitor (void* none)
 	case DEV_OK: // OK
 	    break;
 	case DEV_NYI: // not yet implemented
-	    return (void*)1;
+	    delay_ms(200);
+	    break;
 	default: // something else...
 	    error("monitor(): unknown flag %d", sts);
 	    break;
