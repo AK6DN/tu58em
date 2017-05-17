@@ -731,7 +731,7 @@ static void* run (void* none)
     doinit = !nosync; // start sending init flags?
 
     // say hello
-    info("emulator %sstarted", runonce++ ? "re" : "");
+    info("TU58 emulator %sstarted", runonce++ ? "re" : "");
 
     // loop forever ... almost
     for (;;) {
@@ -827,6 +827,8 @@ static void* monitor (void* none)
 {
     int32_t sts;
 
+    info("TU58 monitor started");
+
     for (;;) {
 
 	// check for any error
@@ -853,7 +855,7 @@ static void* monitor (void* none)
 	    break;
 	}
 	// bit of a delay, loop again
-	delay_ms(5);
+	delay_ms(50);
 
     }
 
@@ -872,7 +874,7 @@ void tu58drive (void)
 	fatal("illegal BLOCKSIZE (%d) / TU_DATA_LEN (%d) ratio", BLOCKSIZE, TU_DATA_LEN);
 
     // say hello
-    info("TU58 emulation start");
+    info("emulation start");
     info("R restart, S toggle send init, V toggle verbose, D toggle debug, Q quit");
 
     // run the emulator
