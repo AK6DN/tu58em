@@ -2,4 +2,6 @@
 *~
 *.o
 *.exe
+*.dsk
+*.DSK
 # the end
