@@ -10,24 +10,25 @@ As of v2.0a the serial support routines have been rewritten to, under Linux, use
 
 The following configurations have been tested:
 ```
-System         Mode             Port           Status
-------------   --------------   ------------   --------------------------------------
-WinXP/CYGWIN   WINCOMM          real comm      PASS, BREAK detected
-WinXP/CYGWIN   WINCOMM          USB ftdi       PASS, BREAK detected
-WinXP/CYGWIN   WINCOMM          USB prolific   conditional PASS, BREAK not detected
-------------   --------------   ------------   --------------------------------------
-WinXP/CYGWIN   termios          real comm      conditional PASS; BREAK not detected
-WinXP/CYGWIN   termios          USB ftdi       conditional PASS; BREAK not detected
-WinXP/CYGWIN   termios          USB prolific   conditional PASS; BREAK not detected
-------------   --------------   ------------   --------------------------------------
-WinXP/CYGWIN   termios+PARMRK   any            FAIL, does not work at all
-------------   --------------   ------------   --------------------------------------
-Linux*         termios+PARMRK   real comm      PASS, BREAK detected
-Linux*         termios+PARMRK   USB ftdi       PASS, BREAK detected
-Linux*         termios+PARMRK   USB prolific   conditional PASS; BREAK not detected
-------------   --------------   ------------   --------------------------------------
-
-*Linux == "Ubuntu 12.04.5 LTS (GNU/Linux 3.2.0-124-generic x86_64)"
+System      Mode             Port           Status
+----------  --------------   ------------   --------------------------------------
+Win/CYGWIN  WINCOMM          real comm      PASS, BREAK detected
+Win/CYGWIN  WINCOMM          USB ftdi       PASS, BREAK detected
+Win/CYGWIN  WINCOMM          USB prolific   conditional PASS, BREAK not detected
+----------  --------------   ------------   --------------------------------------
+Win/CYGWIN  termios          real comm      conditional PASS; BREAK not detected
+Win/CYGWIN  termios          USB ftdi       conditional PASS; BREAK not detected
+Win/CYGWIN  termios          USB prolific   conditional PASS; BREAK not detected
+----------  --------------   ------------   --------------------------------------
+Win/CYGWIN  termios+PARMRK   any            FAIL, does not work at all
+----------  --------------   ------------   --------------------------------------
+Linux       termios+PARMRK   real comm      PASS, BREAK detected
+Linux       termios+PARMRK   USB ftdi       PASS, BREAK detected
+Linux       termios+PARMRK   USB prolific   conditional PASS; BREAK not detected
+----------  --------------   ------------   --------------------------------------
+Note:
+(1) Win/CYGWIN = CYGWIN_NT-5.1 1.7.35(0.287/5/3) i686 Cygwin
+(2) Linux = Ubuntu 12.04.5 LTS (GNU/Linux 3.2.0-124-generic) x86_64 GNU/Linux
 ```
 So it appears that the drivers for real comm ports handle BREAK correctly, as does the driver for the USB ftdi adapter, on both WinXP and Linux. The USB prolific adapter hardware and/or driver do not handle a BREAK, altho all data transfers operate correctly.
 
