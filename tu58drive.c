@@ -2,7 +2,7 @@
 // tu58 - Emulate a TU58 over a serial line
 //
 // Original (C) 1984 Dan Ts'o <Rockefeller Univ. Dept. of Neurobiology>
-// Update   (C) 2005-2016 Donald N North <ak6dn_at_mindspring_dot_com>
+// Update   (C) 2005-2017 Donald N North <ak6dn_at_mindspring_dot_com>
 //
 // All rights reserved.
 //
@@ -48,6 +48,7 @@
 #include "common.h"
 
 #include <pthread.h>
+#include <setjmp.h>
 
 #include "tu58.h"
 
@@ -55,17 +56,13 @@
 // clock_gettime() is not available under MACOSX
 #define CLOCK_REALTIME 1
 #include <mach/mach_time.h>
-#include <mach/clock.h>
-#include <mach/mach.h>
-
 void clock_gettime (int dummy, struct timespec *t) {
     uint64_t mt;
     mt = mach_absolute_time();
     t->tv_sec  = mt / 1000000000;
     t->tv_nsec = mt % 1000000000;
 }
-#endif
-
+#endif // MACOSX
 
 // delays for modeling device access
 
@@ -92,7 +89,7 @@ uint8_t mrsp = 0;			// set nonzero to indicate MRSP mode is active
 static uint8_t doinit = 0;	// set nonzero to indicate should send INITs continuously
 static uint8_t runonce = 0;	// set nonzero to indicate emulator has been run
 static pthread_t th_run;	// emulator thread id
-static pthread_t th_monitor;	// monitor thread id
+static jmp_buf rx_break_env;    // longjmp state for when a BREAK is detected on rx
 
 
 
@@ -141,6 +138,26 @@ static void reinit (void)
 
 
 //
+// read a byte from the host, process BREAK if seen
+//
+static uint8_t rxget (void)
+{
+    uint8_t state;
+    uint8_t c;
+
+    // get a byte and state flag
+    c = devrxget(&state);
+
+    // seen a BREAK on the rx line, so abort this packet
+    if (state == DEV_BREAK) longjmp(rx_break_env, c);
+
+    // return the byte
+    return c;
+}
+
+
+
+//
 // read of boot is not packetized, is just raw data
 //
 static void bootio (void)
@@ -150,7 +167,7 @@ static void bootio (void)
     uint8_t buffer[TU_BOOT_LEN];
 
     // check unit number for validity
-    unit = devrxget();
+    unit = rxget();
     if (fileunit(unit)) {
 	error("bootio bad unit %d", unit);
 	return;
@@ -240,7 +257,7 @@ static void wait4cont (uint8_t code)
 
     // wait for a CONT to arrive, but only so long
     do {
-	c = devrxget();
+	c = rxget();
 	if (debug) info("wait4cont(): char=0x%02X", c);
     } while (c != TUF_CONT && --maxchar >= 0);
 
@@ -293,7 +310,7 @@ static int32_t getpacket (tu_packet *pkt)
     uint16_t rcvchk, expchk;
 
     // get remaining packet bytes, incl two checksum bytes
-    while (--count >= 0) *ptr++ = devrxget();
+    while (--count >= 0) *ptr++ = rxget();
 
     // get checksum bytes
     rcvchk = (ptr[-1]<<8) | (ptr[-2]<<0);
@@ -485,7 +502,7 @@ static void tuwrite (tu_cmdpkt *pk)
 	// loop until we see data flag
 	do {
 	    last = dk.flag;
-	    dk.flag = devrxget();
+	    dk.flag = rxget();
 	    if (debug) info("flag=0x%02X last=0x%02X", dk.flag, last);
 	    if (last == TUF_INIT && dk.flag == TUF_INIT) {
 		// two in a row is special
@@ -507,7 +524,7 @@ static void tuwrite (tu_cmdpkt *pk)
 	} while (dk.flag != TUF_DATA);
 
 	// byte following data flag is packet data length
-	dk.length = devrxget();
+	dk.length = rxget();
 
 	// get remainder of the data packet
 	if (getpacket((tu_packet *)&dk)) {
@@ -579,7 +596,7 @@ static void command (int8_t flag)
     time_end.tv_nsec   = 0;
 
     pk.flag = flag;
-    pk.length = devrxget();
+    pk.length = rxget();
 
     // check control packet length ... if too long flush it
     if (pk.length > sizeof(tu_cmdpkt)) {
@@ -736,6 +753,13 @@ static void* run (void* none)
     // loop forever ... almost
     for (;;) {
 
+        // setup for when a BREAK is detected
+        if (setjmp(rx_break_env)) {
+            // return here when we get a BREAK on the rx input
+            if (debug) info("<BREAK> seen");
+            // fall thru to main loop
+        }
+
 	// loop while no characters are available
 	while (devrxavail() == 0) {
 	    // delays and printout only if not VAX
@@ -754,7 +778,7 @@ static void* run (void* none)
 
 	// process received characters
 	last = flag;
-	flag = devrxget();
+	flag = rxget();
 	if (debug) info("flag=0x%02X last=0x%02X", flag, last);
 
 	switch (flag) {
@@ -821,51 +845,6 @@ static void* run (void* none)
 
 
 //
-// monitor for break/error on line, restart emulator if seen
-//
-static void* monitor (void* none)
-{
-    int32_t sts;
-
-    info("TU58 monitor started");
-
-    for (;;) {
-
-	// check for any error
-	switch (sts = devrxerror()) {
-	case DEV_ERROR: // error
-	case DEV_BREAK: // break
-	    // kill and restart the emulator
-	    if (verbose) info("BREAK detected");
-#ifdef THIS_DOES_NOT_YET_WORK_RELIABLY
-	    if (pthread_cancel(th_run))
-		error("unable to cancel emulation thread");
-	    if (pthread_join(th_run, NULL))
-		error("unable to join on emulation thread");
-	    if (pthread_create(&th_run, NULL, run, NULL))
-		error("unable to restart emulation thread");
-#endif // THIS_DOES_NOT_YET_WORK_RELIABLY
-	    break;
-	case DEV_OK: // OK
-	    break;
-	case DEV_NYI: // not yet implemented
-	    delay_ms(200);
-	    break;
-	default: // something else...
-	    error("monitor(): unknown flag %d", sts);
-	    break;
-	}
-	// bit of a delay, loop again
-	delay_ms(50);
-
-    }
-
-    return (void*)0;
-}
-
-
-
-//
 // start tu58 drive emulation
 //
 void tu58drive (void)
@@ -875,16 +854,12 @@ void tu58drive (void)
 	fatal("illegal BLOCKSIZE (%d) / TU_DATA_LEN (%d) ratio", BLOCKSIZE, TU_DATA_LEN);
 
     // say hello
-    info("emulation start");
+    info("TU58 start");
     info("R restart, S toggle send init, V toggle verbose, D toggle debug, Q quit");
 
     // run the emulator
     if (pthread_create(&th_run, NULL, run, NULL))
 	error("unable to create emulation thread");
-
-    // run the monitor
-    if (pthread_create(&th_monitor, NULL, monitor, NULL))
-	error("unable to create monitor thread");
 
     // loop on user input
     for (;;) {
@@ -917,8 +892,6 @@ void tu58drive (void)
 		    error("unable to restart emulation thread");
 	    } else if (c == 'Q') {
 		// kill the emulator and exit
-		if (pthread_cancel(th_monitor))
-		    error("unable to cancel monitor thread");
 		if (pthread_cancel(th_run))
 		    error("unable to cancel emulation thread");
 		break;
@@ -935,7 +908,7 @@ void tu58drive (void)
 	error("unable to join on emulation thread");
 
     // all done
-    info("TU58 emulation end");
+    info("TU58 end");
     return;
 }
 

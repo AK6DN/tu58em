@@ -2,7 +2,7 @@
 // tu58 - Emulate a TU58 over a serial line
 //
 // Original (C) 1984 Dan Ts'o <Rockefeller Univ. Dept. of Neurobiology>
-// Update   (C) 2005-2016 Donald N North <ak6dn_at_mindspring_dot_com>
+// Update   (C) 2005-2017 Donald N North <ak6dn_at_mindspring_dot_com>
 //
 // All rights reserved.
 //
@@ -80,10 +80,9 @@ typedef struct timespec timespec_t;
 #define FILERT11INIT	4	// file should be init'ed as RT11 structure
 #define FILEXXDPINIT	5	// file should be init'ed as XXDP structure
 
-#define DEV_NYI		-1	// not yet implemented
-#define DEV_OK		 0	// no error
-#define DEV_BREAK	 1	// BREAK on line
-#define DEV_ERROR	 2	// ERROR on line
+#define DEV_NORMAL	0	// normal data byte
+#define DEV_BREAK	1	// BREAK on line
+#define DEV_ERROR	2	// ERROR on byte
 
 
 
@@ -104,8 +103,7 @@ void devtxput (uint8_t);
 int32_t devtxwrite (uint8_t *, int32_t);
 void devrxinit (void);
 int32_t devrxavail (void);
-int32_t devrxerror (void);
-uint8_t devrxget (void);
+uint8_t devrxget (uint8_t *);
 void devinit (char *, int32_t, int32_t);
 void devrestore (void);
 void coninit (void);

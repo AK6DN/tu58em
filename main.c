@@ -79,6 +79,10 @@
 // v1.4p - 05 May 2017 - donorth - Updated serial baud rate table with #ifdef detection
 //                                 Update clock_gettime() for MAC OSX support
 // v1.4q - 16 May 2017 - donorth - Fixed error in fileseek() routine (should fail at EOF)
+// v2.0a - 19 May 2017 - donorth - Rewrite of serial.c to support PARMRK mode on linux
+//                                 so that BREAKs are handled correctly via setjmp/longjmp
+//                                 Update tu58drive.c to intercept rx byte read routine to
+//                                 detect input line BREAK and process as required.
 //
 
 
@@ -89,7 +93,7 @@
 static char copyright[] = "(C) 2005-2017 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v1.4q";
+static char version[] = "tu58 tape emulator v2.0a";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed

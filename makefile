@@ -2,50 +2,46 @@
 # tu58em emulator makefile
 #
 
-ifeq ($(comm),mac)
-# UNIX comms model, but on a Mac
-PROG = tu58em
-COMM = -UWINCOMM -DMACOSX
-else ifeq ($(comm),win)
-# WINDOWS comms model
-PROG = tu58ew
-COMM = -DWINCOMM
-else # ifeq ($(comm),unix)
-# UNIX comms model
-PROG = tu58em
-COMM = -UWINCOMM
+# get operating system name
+OPSYS = $(shell uname -s)
+
+ifeq ($(OPSYS),Darwin)
+# mac: UNIX comms model, but on MACOSX
+OPTIONS = -DMACOSX
+LFLAGS = -lpthread
+else ifeq ($(OPSYS:CYGWIN%=CYGWIN),CYGWIN)
+# win: WINDOWS comms model under CYGWIN (any version)
+OPTIONS = -DCYGWIN -DWINCOMM
+LFLAGS = -lpthread -lrt
+else ifeq ($(OPSYS),Linux)
+# unix: UNIX comms model under LINUX, use PARMRK serial mode
+OPTIONS = -DLINUX -DUSE_PARMRK
+LFLAGS = -lpthread -lrt
+else # unknown environment
+OPTIONS =
+LFLAGS = -lpthread -lrt
 endif
 
+# default program name, redefine PROG=xxx on command line if wanted
+PROG = tu58em
+
 # put your binary installation directory here...
-BIN = /cygdrive/e/DEC/tools/exe
+BINDIR = /cygdrive/e/DEC/tools/exe
 
 # compiler flags and libraries
 CC = gcc
-CFLAGS = -I. -O3 -Wall -c $(COMM)
-ifeq ($(comm),mac)
-LFLAGS = -lpthread
-else
-LFLAGS = -lpthread -lrt
-endif
+CFLAGS = -I. -O3 -Wall -c $(OPTIONS)
 
 $(PROG) : main.o tu58drive.o file.o serial.o
 	$(CC) -o $@ main.o tu58drive.o file.o serial.o $(LFLAGS)
 
-all :
-	make --always comm=win
-	make clean
-	make --always comm=unix
-	make clean
-
-mac :
-	make --always comm=mac
-	make --clean
-
-installall :
-	make --always comm=win install
-	make clean
-	make --always comm=unix install
-	make clean
+config :
+	@echo "   OPSYS = \"$(OPSYS)\""
+	@echo "    PROG = \"$(PROG)\""
+	@echo "  BINDIR = \"$(BINDIR)\""
+	@echo "      CC = \"$(CC)\""
+	@echo "  CFLAGS = \"$(CFLAGS)\""
+	@echo "  LFLAGS = \"$(LFLAGS)\""
 
 clean :
 	-rm -f *.o
@@ -57,7 +53,7 @@ purge : clean
 	-rm -f $(PROG) $(PROG).exe
 
 install : $(PROG)
-	[ -d $(BIN) ] && cp $< $(BIN)
+	[ -d $(BINDIR) ] && cp $< $(BINDIR)
 
 serial.o : serial.c common.h
 	$(CC) $(CFLAGS) serial.c

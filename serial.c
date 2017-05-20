@@ -2,7 +2,7 @@
 // tu58 - Emulate a TU58 over a serial line
 //
 // Original (C) 1984 Dan Ts'o <Rockefeller Univ. Dept. of Neurobiology>
-// Update   (C) 2005-2016 Donald N North <ak6dn_at_mindspring_dot_com>
+// Update   (C) 2005-2017 Donald N North <ak6dn_at_mindspring_dot_com>
 //
 // All rights reserved.
 //
@@ -56,21 +56,21 @@
 #define IUCLC 0 // Not POSIX
 #define OLCUC 0 // Not POSIX
 #define CBAUD 0 // Not POSIX
-#endif
+#endif // MACOSX
 
 #include <termios.h>
 
 #define	BUFSIZE	256	// size of serial line buffers (bytes, each way)
 
 // serial output buffer
-static uint8_t wbuf[BUFSIZE];
+static uint8_t  wbuf[BUFSIZE];
 static uint8_t *wptr;
-static int32_t wcnt;
+static int32_t  wcnt;
 
 // serial input buffer
-static uint8_t rbuf[BUFSIZE];
+static uint8_t  rbuf[BUFSIZE];
 static uint8_t *rptr;
-static int32_t rcnt;
+static int32_t  rcnt;
 
 #ifdef WINCOMM
 // serial device descriptor, default to nada
@@ -78,6 +78,7 @@ static HANDLE hDevice = INVALID_HANDLE_VALUE;
 // async line parameters
 static DCB dcbSave;
 static COMMTIMEOUTS ctoSave;
+static uint8_t rxBreakSeen;
 #else // !WINCOMM
 // serial device descriptor, default to nada
 static int32_t device = -1;
@@ -197,6 +198,7 @@ void devrxinit (void)
 #ifdef WINCOMM
     if (!PurgeComm(hDevice, PURGE_RXABORT|PURGE_RXCLEAR))
 	error("devrxinit(): error=%d", GetLastError());
+    rxBreakSeen = 0;
 #else // !WINCOMM
     tcflush(device, TCIFLUSH);
 #endif // !WINCOMM
@@ -211,75 +213,26 @@ void devrxinit (void)
 
 
 //
-// wait for an error on the serial line
-// return NYI, OK, BREAK, ERROR flag
-//
-int32_t devrxerror (void)
-{
-#ifdef WINCOMM
-    // enable BREAK and ERROR events
-    OVERLAPPED ovlp = { 0 };
-    DWORD sts = 0;
-    if (!SetCommMask(hDevice, EV_BREAK|EV_ERR)) {
-	DWORD err = GetLastError();
-	if (err != ERROR_OPERATION_ABORTED)
-	    error("devrxerror(): SetCommMask() failed, error=%d", err);
-    }
-    // do the status check
-    ovlp.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    if (!WaitCommEvent(hDevice, &sts, &ovlp)) {
-	DWORD err = GetLastError();
-	if (err == ERROR_IO_PENDING) {
-	    if (WaitForSingleObject(ovlp.hEvent, INFINITE) == WAIT_OBJECT_0)
-		GetOverlappedResult(hDevice, &ovlp, &sts, FALSE);
-	} else {
-	    if (err != ERROR_OPERATION_ABORTED)
-		error("devrxerror(): WaitCommEvent() failed, error=%d", err);
-	}
-    }
-    // done
-    CloseHandle(ovlp.hEvent);
-    // indicate either a break or some other error or OK
-    return (sts & (CE_BREAK|CE_FRAME)) ? DEV_BREAK : (sts ? DEV_ERROR : DEV_OK);
-#else // !WINCOMM
-    // not implemented
-    return DEV_NYI;
-#endif // !WINCOMM
-}
-
-
-
-//
-// return number of characters available
+// return number of characters available, get more if receive buffer is empty
 //
 int32_t devrxavail (void)
 {
     // get more characters if none available
     if (rcnt <= 0) {
 #ifdef WINCOMM
-	OVERLAPPED ovlp = { 0 };
 	COMSTAT stat;
 	DWORD acnt = 0;
+	DWORD ncnt = 0;
 	DWORD sts = 0;
 	// clear state
 	if (!ClearCommError(hDevice, &sts, &stat))
 	    error("devrxavail(): ClearCommError() failed");
-	if (debug && (sts || stat.cbInQue))
-	    info("devrxavail(): status=0x%04X avail=%d", sts, stat.cbInQue);
-	// do the read if something there
-	if (stat.cbInQue > 0) {
-	    ovlp.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	    if (!ReadFile(hDevice, rbuf, sizeof(rbuf), &acnt, &ovlp)) {
-		DWORD err = GetLastError();
-		if (err == ERROR_IO_PENDING) {
-		    if (WaitForSingleObject(ovlp.hEvent, INFINITE) == WAIT_OBJECT_0)
-			GetOverlappedResult(hDevice, &ovlp, &acnt, FALSE);
-		} else {
-		    error("devrxavail(): error=%d", err);
-		}
-	    }
-	    CloseHandle(ovlp.hEvent);
-	}
+	// do the read if something there, at most size of buffer
+	ncnt = stat.cbInQue > sizeof(rbuf) ? sizeof(rbuf) : stat.cbInQue;
+	if (!ReadFile(hDevice, rbuf, ncnt, &acnt, NULL))
+	    error("devrxavail(): error=%d", GetLastError());
+	// check for break
+	if (sts & CE_BREAK) rxBreakSeen = 1;
 	// done
 	rcnt = acnt;
 #else // !WINCOMM
@@ -296,7 +249,7 @@ int32_t devrxavail (void)
 
 
 //
-// write characters direct to device
+// write characters direct to device from transmit buffer
 //
 int32_t devtxwrite (uint8_t *buf,
 		    int32_t cnt)
@@ -304,28 +257,16 @@ int32_t devtxwrite (uint8_t *buf,
     // write characters if asked, return number written
     if (cnt > 0) {
 #ifdef WINCOMM
-	OVERLAPPED ovlp = { 0 };
 	COMSTAT stat;
 	DWORD acnt = 0;
 	DWORD sts = 0;
 	// clear state
 	if (!ClearCommError(hDevice, &sts, &stat))
 	    error("devtxwrite(): ClearCommError() failed");
-	if (debug && (sts || stat.cbOutQue))
-	    info("devtxwrite(): status=0x%04X remain=%d", sts, stat.cbOutQue);
 	// do the write
-	ovlp.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	if (!WriteFile(hDevice, buf, cnt, &acnt, &ovlp)) {
-	    DWORD err = GetLastError();
-	    if (err == ERROR_IO_PENDING) {
-		if (WaitForSingleObject(ovlp.hEvent, INFINITE) == WAIT_OBJECT_0)
-		    GetOverlappedResult(hDevice, &ovlp, &acnt, FALSE);
-	    } else {
-		error("devtxwrite(): error=%d", err);
-	    }
-	}
+	if (!WriteFile(hDevice, buf, cnt, &acnt, NULL))
+	    error("devtxwrite(): error=%d", GetLastError());
 	// done
-	CloseHandle(ovlp.hEvent);
 	return acnt;
 #else // !WINCOMM
 	return write(device, buf, cnt);
@@ -370,14 +311,71 @@ void devtxflush (void)
 //
 // return char from rbuf, wait until some arrive
 //
-uint8_t devrxget (void)
+uint8_t devrxget (uint8_t *flg)
 {
-    // get more characters if none available
-    while (devrxavail() <= 0) /*spin*/;
+    uint8_t c;
 
-    // count, return next character
+#ifdef USE_PARMRK
+    // get more bytes if none available
+    while (rcnt <= 0) { (void)devrxavail(); }
+    // at least one available
     rcnt--;
-    return *rptr++;
+    // check if escaped or normal
+    if ((c = *rptr++) == 0377) {
+        // escape byte seen
+        while (rcnt <= 0) { (void)devrxavail(); }
+        // at least one available
+        rcnt--;
+        // check if escape or not
+        if ((c = *rptr++) == 0377) {
+            // 377,377 seen; return 377
+            *flg = DEV_NORMAL;
+            return c;
+        } else {
+            // non-escape byte seen, so get one more byte
+            while (rcnt <= 0) { (void)devrxavail(); }
+            // at least one available
+            rcnt--;
+            // check if NULL
+            if ((c = *rptr++) == 0000) {
+                // 377,000,000 seen; signals a BREAK, return 000 byte
+                *flg = DEV_BREAK;
+                return c;
+            } else {
+                // 377,000,NNN seen; signals byte NNN parity/framing error
+                *flg = DEV_ERROR;
+                return c;
+            }
+        }
+    } else {
+        // return normal data byte
+        *flg = DEV_NORMAL;
+        return c;
+    }
+#else // !USE_PARMRK
+    // get more characters if none available
+    while (rcnt <= 0) { (void)devrxavail(); }
+    // at least one available
+    rcnt--;
+    // get data byte
+    c = *rptr++;
+#ifdef WINCOMM
+    // check if this byte should be flagged as a BREAK
+    // for lack of a better algorithm, we flag the first
+    // ZERO byte after the rxBreakSeen flag is set as BREAK
+    if (c == 000 && rxBreakSeen) {
+	*flg = DEV_BREAK;
+	rxBreakSeen = 0;
+    } else {
+	*flg = DEV_NORMAL;
+    }
+#else // !WINCOMM
+    // return normal data byte
+    *flg = DEV_NORMAL;
+#endif // !WINCOMM
+    // return data byte
+    return c;
+#endif // !USE_PARMRK
 }
 
 
@@ -521,9 +519,17 @@ void devinit (char *port,
     int32_t uid = getuid();
     setreuid(euid, -1);
     if (sscanf(port, "%u", &n) == 1) sprintf(name, "\\\\.\\COM%d", n); else strcpy(name, port);
-    hDevice = CreateFile(name, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING,
-			 FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OVERLAPPED, NULL);
+    // open port in non-overlapped I/O mode
+    hDevice = CreateFile(name,
+			 GENERIC_READ | GENERIC_WRITE,
+			 0,
+			 NULL,
+			 OPEN_EXISTING,
+			 FILE_ATTRIBUTE_NORMAL,
+			 NULL);
     if (hDevice == INVALID_HANDLE_VALUE) fatal("no serial line [%s]", name);
+
+    // we own the port
     setreuid(uid, euid);
 
     // get current line params, error if not a serial port
@@ -595,7 +601,11 @@ void devinit (char *port,
     line.c_iflag &= ~( IGNBRK | BRKINT | IMAXBEL | INPCK | ISTRIP |
 		       INLCR  | IGNCR  | ICRNL   | IXON  | IXOFF  |
 		       IUCLC  | IXANY  | PARMRK  | IGNPAR );
+#ifdef USE_PARMRK
+    line.c_iflag |=  ( PARMRK | IGNPAR );
+#else // !USE_PARMRK
     line.c_iflag |=  ( 0 );
+#endif // !USE_PARMRK
 
     // output param
     line.c_oflag &= ~( OPOST  | OLCUC | OCRNL | ONLCR | ONOCR |

@@ -1,14 +1,35 @@
-<B>tu58em</B> is a software emulation of a DECtapeII TU-58 block addressable cartridge tape drive. It requires only a standard Windows PC as a host with an RS232 serial port to connect to the target system.
+<B>tu58em</B> is a software emulation of a DECtapeII TU-58 block addressable cartridge tape drive. It requires only a standard Windows PC as a host with a (real or USB) RS232 serial comm port to connect to the target system.
 
-<B>tu58em</B> was originally based on the 1984 Dan Ts'o tu58 program, but has been almost completely rewritten to make it compile error free, improve the program flow, and add new functionality. It has been compiled within the CYGWIN environment, and will run either within a CYGWIN window or an MSDOS command window with the associated cygwin1.dll helper file. <B>tu58em</B> has been tested under Win2K, WinXPsp3, and Win7sp1. <B>tu58em</B> has compiled error free under Linux (Ubuntu 12.02LTS) but has not yet been rigorously tested in that environment.
+<B>tu58em</B> was originally based on the 1984 Dan Ts'o tu58 program, but has been almost completely rewritten to make it compile error free, improve the program flow, and add new functionality. It has been compiled within the CYGWIN environment, and will run either within a CYGWIN window or an MSDOS command window with the associated cygwin1.dll helper file. <B>tu58em</B> has been tested under WinXPsp3, Win7sp1(64b), and Linux (Ubuntu 12.02LTS).
 
 Each emulated .dsk image file is exactly 256KB (512 blocks of 512 bytes) of data and is a byte-for-byte image of the data on a TU-58 cartridge tape. As currently configured <B>tu58em</B> will support up to 8 drives per controller as DD0: to DD7: (altho this is easily changed in the source). <B>tu58em</B> will support disk image files as large as the TU58 protocol allows (ie, 32MB, or 64K 512B blocks); however most standard DEC operating system drivers restrict TU58 drives to 256KB each. The DEC driver must be patched to allow for larger than 256KB disk images.
 
-<B>tu58em</B> has been tested using both native RS232 serial COM ports and serial ports emulated thru USB serial adapters.
-
-Note: <B>tu58em</B> is compiled using the CYGWIN serial interface library routines (ie, termios.h) and is the preferred version that should be used. <B>tu58ew</B> bypasses the CYGWIN serial interface layer and makes direct Windows serial comm routine calls. This version was done early on because of deficiencies in the CYGWIN serial library. However, the required features are now present so in reality <B>tu58ew</B> should be considered deprecated.
-
 As of v1.4m Mark Blair's updates for VAX mode operation (for VAX-730 microcode boot support) and background mode are integrated.
+
+As of v2.0a the serial support routines have been rewritten to, under Linux, use termios.h PARMRK mode to allow detecting BREAK inline within the rx byte stream, and respond correctly (ie, abort current command in process and return to init loop). PARMRK mode in CYGWIN appears not be be working correctly; a BREAK just gets turned into a NULL byte. Windows communication mode (-DWINCOMM) is preferred for CYGWIN, as BREAK is detected correctly. MACOS support of PARMRK mode is unknown. The makefile is setup to detect the operating system type and define the compilation options correctly.
+
+The following configurations have been tested:
+```
+System         Mode             Port           Status
+------------   --------------   ------------   --------------------------------------
+WinXP/CYGWIN   WINCOMM          real comm      PASS, BREAK detected
+WinXP/CYGWIN   WINCOMM          USB ftdi       PASS, BREAK detected
+WinXP/CYGWIN   WINCOMM          USB prolific   conditional PASS, BREAK not detected
+------------   --------------   ------------   --------------------------------------
+WinXP/CYGWIN   termios          real comm      conditional PASS; BREAK not detected
+WinXP/CYGWIN   termios          USB ftdi       conditional PASS; BREAK not detected
+WinXP/CYGWIN   termios          USB prolific   conditional PASS; BREAK not detected
+------------   --------------   ------------   --------------------------------------
+WinXP/CYGWIN   termios+PARMRK   any            FAIL, does not work at all
+------------   --------------   ------------   --------------------------------------
+Linux*         termios+PARMRK   real comm      PASS, BREAK detected
+Linux*         termios+PARMRK   USB ftdi       PASS, BREAK detected
+Linux*         termios+PARMRK   USB prolific   conditional PASS; BREAK not detected
+------------   --------------   ------------   --------------------------------------
+
+*Linux == "Ubuntu 12.04.5 LTS (GNU/Linux 3.2.0-124-generic x86_64)"
+```
+So it appears that the drivers for real comm ports handle BREAK correctly, as does the driver for the USB ftdi adapter, on both WinXP and Linux. The USB prolific adapter hardware and/or driver do not handle a BREAK, altho all data transfers operate correctly.
 
 A cygwin folder with a precompiled 32b cygwin executable (tu58em.exe) is included for those without cygwin environment access. Under Windows, just open a standard CMD.EXE window, change to the cygwin folder, and run the <B>tu58em.exe</B> executable as a command line program.
 
@@ -18,7 +39,7 @@ If the emulator is run with no options, it prints a usage screen:
 E:\DEC> tu58em
 ERROR: no units were specified
 FATAL: illegal command line
-  tu58 tape emulator v1.4q
+  tu58 tape emulator v2.0a
   Usage: ./tu58em [-options] -[rwci] file1 ... -[rwci] file7
   Options: -V | --version            output version string
            -v | --verbose            enable verbose output to terminal
@@ -73,9 +94,10 @@ info: initialize RT-11 directory on 'rt11.dsk'
 info: unit 0 r    file 'boot.dsk'
 info: unit 1 rwci file 'rt11.dsk'
 info: serial port 3 at 38400 baud 1 stop
-info: TU58 emulation start
+info: TU58 start
 info: R restart, S toggle send init, V toggle verbose, D toggle debug, Q quit
-info: emulator started
+info: TU58 emulator started
+info: <BREAK> seen
 info: <INIT><INIT> seen, sending <CONT>
 info: read     unit=0 sw=0x00 mod=0x00 blk=0x0000 cnt=0x0400
 info: read     unit=0 sw=0x00 mod=0x00 blk=0x0006 cnt=0x0400
