@@ -6,7 +6,7 @@ Each emulated .dsk image file is exactly 256KB (512 blocks of 512 bytes) of data
 
 As of v1.4m Mark Blair's updates for VAX mode operation (for VAX-730 microcode boot support) and background mode are integrated.
 
-As of v2.0a the serial support routines have been rewritten to, under Linux, use termios.h PARMRK mode to allow detecting BREAK inline within the rx byte stream, and respond correctly (ie, abort current command in process and return to init loop). PARMRK mode in CYGWIN appears not be be working correctly; a BREAK just gets turned into a NULL byte. Windows communication mode (-DWINCOMM) is preferred for CYGWIN, as BREAK is detected correctly. MACOS support of PARMRK mode is unknown. The makefile is setup to detect the operating system type and define the compilation options correctly.
+As of v2.0a the serial support routines have been rewritten to, under Linux, use termios.h PARMRK mode to allow detecting BREAK inline within the rx byte stream, and respond correctly (ie, abort current command in process and return to init loop). PARMRK mode in CYGWIN termios appears not be be working correctly at all. Windows communication mode (-DWINCOMM) is preferred for CYGWIN, as BREAK is detected correctly. MACOS support of PARMRK mode is unknown. The makefile is setup to detect the operating system type and define the compilation options correctly.
 
 The following configurations have been tested:
 ```
