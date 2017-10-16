@@ -586,10 +586,10 @@ void devinit (char *port,
     // open serial port
     int32_t euid = geteuid();
     int32_t uid = getuid();
-    setreuid(euid, -1);
+    if (setreuid(euid, -1)) fatal("setreuid(euid,-1) failed");
     if (sscanf(port, "%u", &n) == 1) sprintf(name, "/dev/ttyS%u", n-1); else strcpy(name, port);
     if ((device = open(name, O_RDWR|O_NDELAY|O_NOCTTY)) < 0) fatal("no serial line [%s]", name);
-    setreuid(uid, euid);
+    if (setreuid(uid, euid)) fatal("setreuid(uid,euid) failed");
 
     // get current line params, error if not a serial port
     if (tcgetattr(device, &lineSave)) fatal("not a serial device [%s]", name);

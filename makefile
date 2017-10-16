@@ -9,24 +9,25 @@ ifeq ($(OPSYS),Darwin)
 # mac: UNIX comms model, but on MACOSX
 OPTIONS = -DMACOSX
 LFLAGS = -lpthread
+BINDIR = /usr/local/bin
 else ifeq ($(OPSYS:CYGWIN%=CYGWIN),CYGWIN)
 # win: WINDOWS comms model under CYGWIN (any version)
 OPTIONS = -DCYGWIN -DWINCOMM
 LFLAGS = -lpthread -lrt
+BINDIR = /cygdrive/e/DEC/tools/exe
 else ifeq ($(OPSYS),Linux)
 # unix: UNIX comms model under LINUX, use PARMRK serial mode
 OPTIONS = -DLINUX -DUSE_PARMRK
 LFLAGS = -lpthread -lrt
+BINDIR = /usr/local/bin
 else # unknown environment
 OPTIONS =
 LFLAGS = -lpthread -lrt
+BINDIR = /usr/local/bin
 endif
 
 # default program name, redefine PROG=xxx on command line if wanted
 PROG = tu58em
-
-# put your binary installation directory here...
-BINDIR = /cygdrive/e/DEC/tools/exe
 
 # compiler flags and libraries
 CC = gcc
