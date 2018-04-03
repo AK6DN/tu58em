@@ -83,6 +83,7 @@
 //                                 so that BREAKs are handled correctly via setjmp/longjmp
 //                                 Update tu58drive.c to intercept rx byte read routine to
 //                                 detect input line BREAK and process as required.
+// v2.0b - 03 Apr 2018 - donorth - Change iflags from PARMRK|IGNPAR to PARMRK|INPCK
 //
 
 
@@ -93,7 +94,7 @@
 static char copyright[] = "(C) 2005-2017 Don North <ak6dn" "@" "mindspring.com>, " \
                           "(C) 1984 Dan Ts'o <Rockefeller University>";
 
-static char version[] = "tu58 tape emulator v2.0a";
+static char version[] = "tu58 tape emulator v2.0b";
 
 static char port[32] = "1"; // default port number (COM1, /dev/ttyS0)
 static long speed = 9600; // default line speed

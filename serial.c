@@ -602,7 +602,7 @@ void devinit (char *port,
 		       INLCR  | IGNCR  | ICRNL   | IXON  | IXOFF  |
 		       IUCLC  | IXANY  | PARMRK  | IGNPAR );
 #ifdef USE_PARMRK
-    line.c_iflag |=  ( PARMRK | IGNPAR );
+    line.c_iflag |=  ( PARMRK | INPCK );
 #else // !USE_PARMRK
     line.c_iflag |=  ( 0 );
 #endif // !USE_PARMRK
