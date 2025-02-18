@@ -32,6 +32,8 @@ Note:
 ```
 So it appears that the drivers for real comm ports handle BREAK correctly, as does the driver for the USB ftdi adapter, on both WinXP and Linux. The USB prolific adapter hardware and/or driver do not handle a BREAK, altho all data transfers operate correctly.
 
+Configuring your serial card in the PDP-11 requires it be setup as 8-N-1 (8b data, no parity, one stop) AND that the serial interface card (example, a DL11-W in a UNIBUS system) be setup at the standard address of 776500 thru 776506. Also make sure that the card is enabled to send BREAK as that is an integral part of the TU58 serial protocol.
+
 A cygwin folder with a precompiled 32b cygwin executable (tu58em.exe) is included for those without cygwin environment access. Under Windows, just open a standard CMD.EXE window, change to the cygwin folder, and run the <B>tu58em.exe</B> executable as a command line program.
 
 If the emulator is run with no options, it prints a usage screen:
